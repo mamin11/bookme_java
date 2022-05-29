@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import theoneamin.bookings.backend.api.entity.booking.*;
 import theoneamin.bookings.backend.api.entity.user.UserEntity;
 import theoneamin.bookings.backend.api.enums.UserType;
+import theoneamin.bookings.backend.api.exception.ApiException;
 import theoneamin.bookings.backend.api.repository.BookingRepository;
 import theoneamin.bookings.backend.api.repository.UserRepository;
 
@@ -38,12 +39,12 @@ public class BookingService {
         // validate customer
         UserEntity customer = userRepository
                 .findByEmailAndUserType(bookingRequest.getCustomerEmail(), UserType.CUSTOMER)
-                .orElseThrow(() -> new IllegalStateException("Customer does not exist"));
+                .orElseThrow(() -> new ApiException("Customer does not exist"));
 
         // validate staff
         UserEntity staff = userRepository
                 .findByEmailAndUserType(bookingRequest.getStaffEmail(), UserType.STAFF)
-                .orElseThrow(() -> new IllegalStateException("Staff does not exist"));
+                .orElseThrow(() -> new ApiException("Staff does not exist"));
 
         // get available slots
         Criteria criteria = Criteria.where("booking_date").is(bookingRequest.getBookingDate())
@@ -54,7 +55,7 @@ public class BookingService {
         // validate date
         if (bookingSlot == null) {
             log.error("No booking slots available for date: {}", bookingRequest.getBookingDate());
-            throw new IllegalStateException("No booking slots available for date: "+bookingRequest.getBookingDate());
+            throw new ApiException("No booking slots available for date: "+bookingRequest.getBookingDate());
         }
 
         // validate booking time slot
@@ -62,7 +63,7 @@ public class BookingService {
         log.info("isTimeSlotValid: {}", isTimeslotValid);
         if (!isTimeslotValid) {
             log.error("Timeslot validation failed: {}, {}", bookingRequest.getBookingSlots(), bookingRequest.getBookingDate());
-            throw new IllegalStateException("One or more of selected timeslots is already taken: "+bookingRequest.getBookingSlots());
+            throw new ApiException("One or more of selected timeslots is already taken: "+bookingRequest.getBookingSlots());
         }
 
         // throw exception if any fail
@@ -94,7 +95,7 @@ public class BookingService {
                         .customerEmail(customer.getEmail())
                         .staffEmail(staff.getEmail())
                         .date(LocalDate.now())
-                        .timeSlots(booking.getBookingSlots())
+                        .timeslots(booking.getBookingSlots())
                         .build())
                 .build();
     }

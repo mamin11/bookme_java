@@ -20,7 +20,7 @@ public class BookingRequest {
     @NotNull(message = "Please provide service id")
     private Integer serviceId;
 
-    @NotNull(message = "Please provide booking date")
+    @NotEmpty(message = "Please provide booking date")
     private String bookingDate;
 
     @NotNull(message = "Please provide at least one time slot")
