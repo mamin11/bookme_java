@@ -12,6 +12,7 @@ import theoneamin.bookings.backend.api.entity.booking.BookingEntity;
 import theoneamin.bookings.backend.api.entity.booking.BookingRequest;
 import theoneamin.bookings.backend.api.entity.booking.BookingResponse;
 import theoneamin.bookings.backend.api.repository.BookingRepository;
+import theoneamin.bookings.backend.api.service.BookingService;
 
 import javax.validation.Valid;
 import java.time.LocalDate;
@@ -23,8 +24,7 @@ import java.time.LocalDate;
 @Validated
 public class BookingController {
 
-    @Autowired
-    BookingRepository bookingRepository;
+    @Autowired BookingService bookingService;
 
     @GetMapping(BookingEndpoints.TEST)
     public ResponseEntity<String> all() {
@@ -35,26 +35,7 @@ public class BookingController {
     public ResponseEntity<BookingResponse> addBooking(@Valid @RequestBody BookingRequest bookingRequest) {
         log.info("{} request: {}", BookingEndpoints.BOOKING_ADD, bookingRequest);
 
-        BookingEntity booking = new BookingEntity();
-        booking.setCustomerId(bookingRequest.getCustomerId());
-        booking.setStaffId(bookingRequest.getStaffId());
-        booking.setServiceId(bookingRequest.getServiceId());
-        booking.setBookingDate(bookingRequest.getBookingDate());
-        booking.setBookingSlots(bookingRequest.getBookingSlots());
-        booking.setNotifyCustomer(bookingRequest.isNotifyCustomer());
-
-        BookingEntity persisted = bookingRepository.save(booking);
-
-        BookingResponse response = BookingResponse.builder()
-                .message("Successfully created booking")
-                .booking(BookingDTO.builder()
-                        .bookingId(persisted.getId())
-                        .customerEmail("test@test.com")
-                        .date(LocalDate.now())
-                        .timeSlots(booking.getBookingSlots())
-                        .build())
-                .build();
-
+        BookingResponse response = bookingService.createBooking(bookingRequest);
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 }

@@ -1,5 +1,6 @@
 package theoneamin.bookings.backend.api.entity.booking;
 
+import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -13,10 +14,11 @@ import java.util.List;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-@JsonNaming
+@JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 public class BookingDTO {
     private String bookingId;
     private String customerEmail;
+    private String staffEmail;
     private LocalDate date;
-    private List<String> timeSlots;
+    private List<String> timeslots;
 }

@@ -11,29 +11,20 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import java.util.List;
 
-@Document(collection = "booking")
+@Document(collection = "booking_slots")
 @Data
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
-public class BookingEntity {
+public class BookingSlots {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private String id;
 
-    @Field
-    private Integer customerId;
+    @Field("seller_id")
+    private Integer sellerId;
 
-    @Field
-    private Integer serviceId;
-
-    @Field
-    private Integer staffId;
-
-    @Field
+    @Field("booking_date")
     private String bookingDate;
 
-    @Field
-    private List<String> bookingSlots;
-
-    @Field
-    private boolean notifyCustomer;
+    @Field("timeslots")
+    private List<String> timeSlots;
 }
