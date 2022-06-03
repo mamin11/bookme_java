@@ -66,8 +66,7 @@ public class BookingService {
             throw new ApiException("One or more of selected timeslots is already taken: "+bookingRequest.getBookingSlots());
         }
 
-        // throw exception if any fail
-        // return booking metadata and send message to rabbitMQ
+         // return booking metadata and send message to rabbitMQ
 
         // remove selected bookings from timeslots for the day
         bookingSlot.setTimeSlots(bookingSlot
@@ -88,7 +87,9 @@ public class BookingService {
 
         BookingEntity persisted = bookingRepository.save(booking);
 
-        return BookingResponse.builder()
+        // needed for AOP after return statement to queue message
+        @SuppressWarnings("UnnecessaryLocalVariable")
+        BookingResponse bookingResponse = BookingResponse.builder()
                 .message("Successfully created booking")
                 .booking(BookingDTO.builder()
                         .bookingId(persisted.getId())
@@ -98,6 +99,7 @@ public class BookingService {
                         .timeslots(booking.getBookingSlots())
                         .build())
                 .build();
+        return bookingResponse;
     }
 
     /**
