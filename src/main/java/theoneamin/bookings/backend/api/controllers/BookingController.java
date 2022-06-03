@@ -35,6 +35,7 @@ public class BookingController {
     public ResponseEntity<BookingResponse> addBooking(@Valid @RequestBody BookingRequest bookingRequest) {
         log.info("{} request: {}", BookingEndpoints.BOOKING_ADD, bookingRequest);
 
+        //todo: make transactional
         BookingResponse response = bookingService.createBooking(bookingRequest);
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }

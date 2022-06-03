@@ -95,7 +95,7 @@ public class BookingService {
                         .bookingId(persisted.getId())
                         .customerEmail(customer.getEmail())
                         .staffEmail(staff.getEmail())
-                        .date(LocalDate.now())
+                        .date(LocalDate.now().toString())
                         .timeslots(booking.getBookingSlots())
                         .build())
                 .build();
