@@ -14,11 +14,17 @@ import org.springframework.stereotype.Component;
 @AllArgsConstructor
 public class RabbitMQMessageProducer {
     public static final String ROUTING_KEY = "notification.queue";
+    public static final String STAFF_ROUTING_KEY = "notification.staff.queue";
     private final CachingConnectionFactory cachingConnectionFactory;
 
     @Bean
     public Queue createBookingNotificationQueue() {
         return new Queue(ROUTING_KEY);
+    }
+
+    @Bean
+    public Queue createStaffNotificationQueue() {
+        return new Queue(STAFF_ROUTING_KEY);
     }
 
     @Bean

@@ -90,6 +90,7 @@ public class BookingService {
                         .customerEmail(customer.getEmail())
                         .staffEmail(staff.getEmail())
                         .date(persisted.getBookingDate())
+                        .notifyCustomer(persisted.isNotifyCustomer())
                         .timeslots(booking.getBookingSlots())
                         .build())
                 .build();

@@ -18,5 +18,6 @@ public class BookingDTO {
     private String customerEmail;
     private String staffEmail;
     private String date;
+    private boolean notifyCustomer;
     private List<String> timeslots;
 }

@@ -11,6 +11,7 @@ import theoneamin.bookings.backend.api.amqp.RabbitMQMessageProducer;
 import theoneamin.bookings.backend.api.entity.booking.BookingResponse;
 
 import static theoneamin.bookings.backend.api.amqp.RabbitMQMessageProducer.ROUTING_KEY;
+import static theoneamin.bookings.backend.api.amqp.RabbitMQMessageProducer.STAFF_ROUTING_KEY;
 
 @Aspect
 @Component
@@ -23,7 +24,13 @@ public class BookingAspect {
     {
         log.info("After Returning method: "+joinPoint.getSignature());
         log.info(bookingResponse.getBooking().toString());
-        rabbitTemplate.convertAndSend(ROUTING_KEY, bookingResponse.getBooking());
-        log.info("Published message to: "+ROUTING_KEY);
+        if (bookingResponse.getBooking().isNotifyCustomer()) {
+            rabbitTemplate.convertAndSend(ROUTING_KEY, bookingResponse.getBooking());
+            log.info("Published message to: " + ROUTING_KEY);
+        } else {
+            log.info("Notify_customer: {}", bookingResponse.getBooking().isNotifyCustomer());
+            rabbitTemplate.convertAndSend(STAFF_ROUTING_KEY, bookingResponse.getBooking());
+            log.info("Published message to: " + STAFF_ROUTING_KEY);
+        }
     }
 }
