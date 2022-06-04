@@ -116,4 +116,57 @@ public class BookingService {
 
         return !requestSlotInExistingSlots.isEmpty();
     }
+
+    /**
+     * Get booking by id
+     * @param id booking id
+     * @return booking
+     */
+    public BookingEntity getBookingById(String id) {
+        return bookingRepository.findById(id).orElseThrow(() -> new ApiException("Booking not found by id"));
+    }
+
+    /**
+     * Get all bookings
+     * @return list of bookings
+     */
+    public List<BookingEntity> getAllBookings() {
+        return bookingRepository.findAll();
+    }
+
+    /**
+     * Get bookings by staff id
+     * @param id staff id
+     * @return list of bookings
+     */
+    public List<BookingEntity> getByStaffId(Integer id) {
+        return mongoTemplate.find(Query.query(Criteria.where("staffId").is(id)), BookingEntity.class);
+    }
+
+    /**
+     * Get bookings by customer id
+     * @param id customer id
+     * @return list of bookings
+     */
+    public List<BookingEntity> getByCustomerId(Integer id) {
+        return mongoTemplate.find(Query.query(Criteria.where("customerId").is(id)), BookingEntity.class);
+    }
+
+    /**
+     * Get bookings by service id
+     * @param id service id
+     * @return list of bookings
+     */
+    public List<BookingEntity> getByServiceId(Integer id) {
+        return mongoTemplate.find(Query.query(Criteria.where("serviceId").is(id)), BookingEntity.class);
+    }
+
+    /**
+     * Get bookings by date
+     * @param date date
+     * @return list of bookings
+     */
+    public List<BookingEntity> getByDate(String date) {
+        return mongoTemplate.find(Query.query(Criteria.where("bookingDate").is(date)), BookingEntity.class);
+    }
 }

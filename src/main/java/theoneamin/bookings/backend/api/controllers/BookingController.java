@@ -7,15 +7,13 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import theoneamin.bookings.backend.api.config.BookingEndpoints;
-import theoneamin.bookings.backend.api.entity.booking.BookingDTO;
 import theoneamin.bookings.backend.api.entity.booking.BookingEntity;
 import theoneamin.bookings.backend.api.entity.booking.BookingRequest;
 import theoneamin.bookings.backend.api.entity.booking.BookingResponse;
-import theoneamin.bookings.backend.api.repository.BookingRepository;
 import theoneamin.bookings.backend.api.service.BookingService;
 
 import javax.validation.Valid;
-import java.time.LocalDate;
+import java.util.List;
 
 @RestController
 @RequestMapping()
@@ -38,5 +36,41 @@ public class BookingController {
         //todo: make transactional
         BookingResponse response = bookingService.createBooking(bookingRequest);
         return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
+
+    @GetMapping(BookingEndpoints.BOOKING_BY_ID)
+    public ResponseEntity<BookingEntity> getBooking(@PathVariable String id) {
+        log.info("{} request: {}", BookingEndpoints.BOOKING_BY_ID, id);
+        return ResponseEntity.status(HttpStatus.OK).body(bookingService.getBookingById(id));
+    }
+
+    @GetMapping(BookingEndpoints.BOOKING_ALL)
+    public ResponseEntity<List<BookingEntity>> getAllBooking() {
+        log.info("{} request", BookingEndpoints.BOOKING_ALL);
+        return ResponseEntity.status(HttpStatus.OK).body(bookingService.getAllBookings());
+    }
+
+    @GetMapping(BookingEndpoints.BOOKING_BY_STAFF)
+    public ResponseEntity<List<BookingEntity>> getBookingsByStaff(@PathVariable Integer id) {
+        log.info("{} request: {}", BookingEndpoints.BOOKING_BY_STAFF, id);
+        return ResponseEntity.status(HttpStatus.OK).body(bookingService.getByStaffId(id));
+    }
+
+    @GetMapping(BookingEndpoints.BOOKING_BY_CUSTOMER)
+    public ResponseEntity<List<BookingEntity>> getBookingsByCustomer(@PathVariable Integer id) {
+        log.info("{} request: {}", BookingEndpoints.BOOKING_BY_CUSTOMER, id);
+        return ResponseEntity.status(HttpStatus.OK).body(bookingService.getByCustomerId(id));
+    }
+
+    @GetMapping(BookingEndpoints.BOOKING_BY_SERVICE)
+    public ResponseEntity<List<BookingEntity>> getBookingsByService(@PathVariable Integer id) {
+        log.info("{} request: {}", BookingEndpoints.BOOKING_BY_SERVICE, id);
+        return ResponseEntity.status(HttpStatus.OK).body(bookingService.getByServiceId(id));
+    }
+
+    @GetMapping(BookingEndpoints.BOOKING_BY_DATE)
+    public ResponseEntity<List<BookingEntity>> getBookingsByDate(@PathVariable String date) {
+        log.info("{} request: {}", BookingEndpoints.BOOKING_BY_DATE, date);
+        return ResponseEntity.status(HttpStatus.OK).body(bookingService.getByDate(date));
     }
 }
