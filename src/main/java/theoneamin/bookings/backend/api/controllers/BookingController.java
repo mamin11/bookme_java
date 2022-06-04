@@ -73,4 +73,17 @@ public class BookingController {
         log.info("{} request: {}", BookingEndpoints.BOOKING_BY_DATE, date);
         return ResponseEntity.status(HttpStatus.OK).body(bookingService.getByDate(date));
     }
+
+    @PutMapping(BookingEndpoints.BOOKING_EDIT)
+    public ResponseEntity<BookingEntity> editBooking(@PathVariable String id, @RequestBody BookingEntity booking) {
+        log.info("{} request: {}", BookingEndpoints.BOOKING_EDIT, id);
+        return ResponseEntity.status(HttpStatus.OK).body(bookingService.editBooking(id, booking));
+    }
+
+    @DeleteMapping(BookingEndpoints.BOOKING_DELETE)
+    public ResponseEntity<String> deleteBooking(@PathVariable String id) {
+        log.info("{} request: {}", BookingEndpoints.BOOKING_DELETE, id);
+        bookingService.deleteBooking(id);
+        return ResponseEntity.status(HttpStatus.OK).body("Successfully deleted booking");
+    }
 }

@@ -37,14 +37,10 @@ public class BookingService {
      */
     public BookingResponse createBooking(BookingRequest bookingRequest) {
         // validate customer
-        UserEntity customer = userRepository
-                .findByEmailAndUserType(bookingRequest.getCustomerEmail(), UserType.CUSTOMER)
-                .orElseThrow(() -> new ApiException("Customer does not exist"));
+        UserEntity customer = validateUser(bookingRequest.getCustomerEmail(), UserType.CUSTOMER, "Customer does not exist");
 
         // validate staff
-        UserEntity staff = userRepository
-                .findByEmailAndUserType(bookingRequest.getStaffEmail(), UserType.STAFF)
-                .orElseThrow(() -> new ApiException("Staff does not exist"));
+        UserEntity staff = validateUser(bookingRequest.getStaffEmail(), UserType.STAFF, "Staff does not exist");
 
         // get available slots
         Criteria criteria = Criteria.where("booking_date").is(bookingRequest.getBookingDate())
@@ -54,8 +50,8 @@ public class BookingService {
 
         // validate date
         if (bookingSlot == null) {
-            log.error("No booking slots available for date: {}", bookingRequest.getBookingDate());
-            throw new ApiException("No booking slots available for date: "+bookingRequest.getBookingDate());
+            log.error("No booking slots available for date: {} for staff: {}", bookingRequest.getBookingDate(), bookingRequest.getStaffEmail());
+            throw new ApiException("No booking slots available for date: "+bookingRequest.getBookingDate()+" for staff: "+bookingRequest.getStaffEmail());
         }
 
         // validate booking time slot
@@ -65,8 +61,6 @@ public class BookingService {
             log.error("Timeslot validation failed: {}, {}", bookingRequest.getBookingSlots(), bookingRequest.getBookingDate());
             throw new ApiException("One or more of selected timeslots is already taken: "+bookingRequest.getBookingSlots());
         }
-
-         // return booking metadata and send message to rabbitMQ
 
         // remove selected bookings from timeslots for the day
         bookingSlot.setTimeSlots(bookingSlot
@@ -95,11 +89,17 @@ public class BookingService {
                         .bookingId(persisted.getId())
                         .customerEmail(customer.getEmail())
                         .staffEmail(staff.getEmail())
-                        .date(LocalDate.now().toString())
+                        .date(persisted.getBookingDate())
                         .timeslots(booking.getBookingSlots())
                         .build())
                 .build();
         return bookingResponse;
+    }
+
+    private UserEntity validateUser(String email, UserType userType, String errorMessage) {
+        return userRepository
+                .findByEmailAndUserType(email, userType)
+                .orElseThrow(() -> new ApiException(errorMessage));
     }
 
     /**
@@ -168,5 +168,104 @@ public class BookingService {
      */
     public List<BookingEntity> getByDate(String date) {
         return mongoTemplate.find(Query.query(Criteria.where("bookingDate").is(date)), BookingEntity.class);
+    }
+
+    /**
+     * Edit booking
+     * @param id booking id
+     * @param booking booking
+     * @return updated booking
+     */
+    public BookingEntity editBooking(String id, BookingEntity booking) {
+        BookingEntity bookingEntity = bookingRepository.findById(id).orElseThrow(() -> new ApiException("Booking not found by id"));
+        log.info("Booking validated: {}", bookingEntity.getId());
+
+        // validate customer
+        UserEntity customer = userRepository.findById(booking.getCustomerId()).orElseThrow(() -> new ApiException("Customer not found by id"+booking.getCustomerId()));
+        log.info("Customer validated: {}", customer.getId());
+
+        // validate staff
+        UserEntity staff = userRepository.findById(booking.getStaffId()).orElseThrow(() -> new ApiException("Staff not found by id"+booking.getStaffId()));
+        log.info("Staff validated: {}", staff.getId());
+
+        // get available slots
+        Criteria criteria = Criteria.where("booking_date").is(booking.getBookingDate())
+                .andOperator(Criteria.where("seller_id").is(staff.getId()));
+        BookingSlots bookingSlot = mongoTemplate.findOne(Query.query(criteria), BookingSlots.class);
+        log.debug("Found booking slots: {}", bookingSlot);
+
+        // validate date
+        if (bookingSlot == null) {
+            log.error("No booking slots available for date: {} for staff: {}", booking.getBookingDate(), booking.getStaffId());
+            throw new ApiException("No booking slots available for date: "+booking.getBookingDate()+" for staff: "+booking.getStaffId());
+        }
+
+        if ( booking.getBookingSlots().containsAll(bookingSlot.getTimeSlots()) && bookingSlot.getTimeSlots().containsAll(booking.getBookingSlots())) {
+            log.info("Booking timeslots different. Validating timeslots");
+            // validate booking time slot
+            boolean isTimeslotValid = isTimeslotValid(booking.getBookingSlots(), bookingSlot);
+            log.info("isTimeSlotValid: {}", isTimeslotValid);
+            if (!isTimeslotValid) {
+                log.error("Timeslot validation failed: {}, {}", booking.getBookingSlots(), booking.getBookingDate());
+                throw new ApiException("One or more of selected timeslots is already taken: " + booking.getBookingSlots());
+            }
+        }
+
+        // if date changed, put booking time slots back in previous date
+        if (!booking.getBookingDate().equals(bookingEntity.getBookingDate())) {
+            log.info("Booking date is different. Updating previous date timeslots");
+            Criteria cr = Criteria.where("booking_date").is(bookingEntity.getBookingDate())
+                    .andOperator(Criteria.where("seller_id").is(bookingEntity.getStaffId()));
+            BookingSlots prevBookingSlot = mongoTemplate.findOne(Query.query(cr), BookingSlots.class);
+            log.debug("Found booking slots: {}", prevBookingSlot);
+
+            if (prevBookingSlot == null) {
+                log.error("Booking slots not found for date: {} seller_id: {}",bookingEntity.getBookingDate(),bookingEntity.getStaffId());
+                throw new ApiException("Booking slots not found for date: "+bookingEntity.getBookingDate()+" seller_id: "+bookingEntity.getStaffId());
+            }
+
+            // add if not already exist
+            prevBookingSlot.getTimeSlots().addAll(booking.getBookingSlots());
+            prevBookingSlot.setTimeSlots(
+                    prevBookingSlot.getTimeSlots()
+                            .stream()
+                            .distinct()
+                            .collect(Collectors.toList()));
+
+            // remove selected bookings from timeslots for the day
+            bookingSlot.setTimeSlots(bookingSlot
+                    .getTimeSlots()
+                    .stream()
+                    .filter(s -> !booking.getBookingSlots().contains(s))
+                    .collect(Collectors.toList()));
+            BookingSlots updatedSlots = mongoTemplate.save(bookingSlot);
+            log.info("Updated booking slots: {} for: {}", updatedSlots, booking.getBookingDate());
+
+            mongoTemplate.save(prevBookingSlot);
+
+        }
+
+        bookingEntity.setBookingDate(booking.getBookingDate());
+        bookingEntity.setBookingSlots(booking.getBookingSlots());
+        bookingEntity.setServiceId(booking.getServiceId());
+        bookingEntity.setStaffId(booking.getStaffId());
+        bookingEntity.setCustomerId(booking.getCustomerId());
+        bookingEntity.setNotifyCustomer(booking.isNotifyCustomer());
+
+        BookingEntity updatedBooking = mongoTemplate.save(bookingEntity);
+        log.info("Updated booking: {}", updatedBooking);
+
+        return updatedBooking;
+    }
+
+    /**
+     * Delete booking by id
+     * @param id booking id
+     */
+    public void deleteBooking(String id) {
+        BookingEntity bookingEntity = bookingRepository.findById(id).orElseThrow(() -> new ApiException("Booking not found by id"));
+        log.info("Booking validated: {}", bookingEntity.getId());
+        mongoTemplate.remove(bookingEntity);
+        log.info("Booking deleted");
     }
 }
