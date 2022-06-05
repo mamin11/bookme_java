@@ -5,9 +5,11 @@ import org.springframework.stereotype.Repository;
 import theoneamin.bookings.backend.api.entity.user.UserEntity;
 import theoneamin.bookings.backend.api.enums.UserType;
 
+import java.util.List;
 import java.util.Optional;
 
 @Repository
 public interface UserRepository extends JpaRepository<UserEntity, Integer> {
     Optional<UserEntity> findByEmailAndUserType(String email, UserType userType);
+    List<UserEntity> findAllByUserType(UserType userType);
 }
