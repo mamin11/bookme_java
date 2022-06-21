@@ -28,11 +28,16 @@ public class UserEntity {
     private String password;
 
     @Column
+    private String image;
+
+    @Column
     @Convert(converter = UserTypeConverter.class)
     private UserType userType;
 
     @Transient
-    public String fullName() {
+    private String fullName;
+
+    public String getFullName() {
         return this.firstname+" "+this.lastname;
     }
 }
