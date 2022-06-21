@@ -29,7 +29,14 @@ public class BookingAspect {
             log.info("Published message to: " + ROUTING_KEY);
         } else {
             log.info("Notify_customer: {}", bookingResponse.getBooking().isNotifyCustomer());
-            rabbitTemplate.convertAndSend(STAFF_ROUTING_KEY, bookingResponse.getBooking());
+
+            QueueEmailDTO emailDTO = QueueEmailDTO
+                    .builder()
+                    .job("SendEmail")
+                    .data(bookingResponse.getBooking())
+                    .build();
+
+            rabbitTemplate.convertAndSend(STAFF_ROUTING_KEY, emailDTO);
             log.info("Published message to: " + STAFF_ROUTING_KEY);
         }
     }

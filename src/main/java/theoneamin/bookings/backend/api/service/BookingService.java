@@ -13,7 +13,6 @@ import theoneamin.bookings.backend.api.exception.ApiException;
 import theoneamin.bookings.backend.api.repository.BookingRepository;
 import theoneamin.bookings.backend.api.repository.UserRepository;
 
-import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -43,10 +42,7 @@ public class BookingService {
         UserEntity staff = validateUser(bookingRequest.getStaffEmail(), UserType.STAFF, "Staff does not exist");
 
         // get available slots
-        Criteria criteria = Criteria.where("booking_date").is(bookingRequest.getBookingDate())
-                .andOperator(Criteria.where("seller_id").is(staff.getId()));
-        BookingSlots bookingSlot = mongoTemplate.findOne(Query.query(criteria), BookingSlots.class);
-        log.debug("Found booking slots: {}", bookingSlot);
+        BookingSlots bookingSlot = getAvailableBookingSlots(bookingRequest.getBookingDate(), staff.getId());
 
         // validate date
         if (bookingSlot == null) {
@@ -87,6 +83,7 @@ public class BookingService {
                 .message("Successfully created booking")
                 .booking(BookingDTO.builder()
                         .bookingId(persisted.getId())
+                        .customerFirstName(customer.getFirstname())
                         .customerEmail(customer.getEmail())
                         .staffEmail(staff.getEmail())
                         .date(persisted.getBookingDate())
@@ -95,6 +92,14 @@ public class BookingService {
                         .build())
                 .build();
         return bookingResponse;
+    }
+
+    private BookingSlots getAvailableBookingSlots(String bookingDate, Integer id) {
+        Criteria criteria = Criteria.where("booking_date").is(bookingDate)
+                .andOperator(Criteria.where("seller_id").is(id));
+        BookingSlots bookingSlot = mongoTemplate.findOne(Query.query(criteria), BookingSlots.class);
+        log.debug("Found booking slots: {}", bookingSlot);
+        return bookingSlot;
     }
 
     private UserEntity validateUser(String email, UserType userType, String errorMessage) {
@@ -177,6 +182,7 @@ public class BookingService {
      * @param booking booking
      * @return updated booking
      */
+    //TODO: optimize method. (speed, database interactions)
     public BookingEntity editBooking(String id, BookingEntity booking) {
         BookingEntity bookingEntity = bookingRepository.findById(id).orElseThrow(() -> new ApiException("Booking not found by id"));
         log.info("Booking validated: {}", bookingEntity.getId());
@@ -190,10 +196,7 @@ public class BookingService {
         log.info("Staff validated: {}", staff.getId());
 
         // get available slots
-        Criteria criteria = Criteria.where("booking_date").is(booking.getBookingDate())
-                .andOperator(Criteria.where("seller_id").is(staff.getId()));
-        BookingSlots bookingSlot = mongoTemplate.findOne(Query.query(criteria), BookingSlots.class);
-        log.debug("Found booking slots: {}", bookingSlot);
+        BookingSlots bookingSlot = getAvailableBookingSlots(booking.getBookingDate(), staff.getId());
 
         // validate date
         if (bookingSlot == null) {
@@ -215,10 +218,7 @@ public class BookingService {
         // if date changed, put booking time slots back in previous date
         if (!booking.getBookingDate().equals(bookingEntity.getBookingDate())) {
             log.info("Booking date is different. Updating previous date timeslots");
-            Criteria cr = Criteria.where("booking_date").is(bookingEntity.getBookingDate())
-                    .andOperator(Criteria.where("seller_id").is(bookingEntity.getStaffId()));
-            BookingSlots prevBookingSlot = mongoTemplate.findOne(Query.query(cr), BookingSlots.class);
-            log.debug("Found booking slots: {}", prevBookingSlot);
+            BookingSlots prevBookingSlot = getAvailableBookingSlots(bookingEntity.getBookingDate(), bookingEntity.getStaffId());
 
             if (prevBookingSlot == null) {
                 log.error("Booking slots not found for date: {} seller_id: {}",bookingEntity.getBookingDate(),bookingEntity.getStaffId());

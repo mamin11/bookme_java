@@ -15,6 +15,7 @@ import java.util.List;
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 public class BookingDTO {
     private String bookingId;
+    private String customerFirstName;
     private String customerEmail;
     private String staffEmail;
     private String date;
