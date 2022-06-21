@@ -98,7 +98,7 @@ public class BookingService {
         Criteria criteria = Criteria.where("booking_date").is(bookingDate)
                 .andOperator(Criteria.where("seller_id").is(id));
         BookingSlots bookingSlot = mongoTemplate.findOne(Query.query(criteria), BookingSlots.class);
-        log.debug("Found booking slots: {}", bookingSlot);
+        log.debug("Found booking slots: {} for date: {}", bookingSlot, bookingDate);
         return bookingSlot;
     }
 
