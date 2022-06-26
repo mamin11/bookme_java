@@ -1,0 +1,37 @@
+volumes:
+  data:
+
+name: booking-resources
+services:
+  rabbitmq:
+    image: rabbitmq:management
+    ports:
+      - 5672:5672
+      - 15672:15672
+    networks:
+      - booking-backend
+    volumes:
+      - data:/var/lib/rabbitmq
+      - ./rabbitmq-defs.json:/opt/definitions.json
+      - ./rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf
+  mailhog:
+    image: 'mailhog/mailhog:latest'
+    ports:
+      - 1025:1025
+      - 8025:8025
+    networks:
+      - booking-backend
+  mariadb:
+    image: mariadb:latest
+    environment:
+      - MARIADB_ROOT_PASSWORD=mariadbpw
+    ports:
+      - 3306:3306
+    networks:
+      - booking-backend
+    volumes:
+      - data:/var/lib/mysql
+networks:
+  booking-backend:
+    driver: bridge
+    name: booking-backend
