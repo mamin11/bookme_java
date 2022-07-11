@@ -4,9 +4,7 @@ import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import lombok.Data;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Id;
+import javax.persistence.*;
 import java.math.BigDecimal;
 
 @Data
@@ -14,6 +12,7 @@ import java.math.BigDecimal;
 @JsonNaming(PropertyNamingStrategies.LowerCamelCaseStrategy.class)
 public class ServiceEntity {
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
     @Column
