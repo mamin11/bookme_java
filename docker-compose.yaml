@@ -1,0 +1,16 @@
+version: '2'
+services:
+  booking-api:
+    container_name: booking-api
+    image: registry.gitlab.com/mybookings/booking-api:0.0.1-SNAPSHOT
+    ports:
+      - "8081:8081"
+    environment:
+      - MONGO_SERVICE_HOST=host.docker.internal
+      - MYSQL_SERVICE_HOST=mariadb
+      - RABBITMQ_SERVICE_HOST=rabbitmq
+    networks:
+      - booking-backend
+networks:
+  booking-backend:
+    external: true
