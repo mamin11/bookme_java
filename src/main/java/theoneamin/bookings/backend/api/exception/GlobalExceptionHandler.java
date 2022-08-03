@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
+import java.sql.SQLIntegrityConstraintViolationException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -36,6 +37,13 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
     @ExceptionHandler(ApiException.class)
     public final ResponseEntity<Object> handleAllExceptions(ApiException ex) {
+        Map<String, Object> map = new HashMap<>();
+        map.put("error", ex.getMessage());
+        return new ResponseEntity<>(map, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(SQLIntegrityConstraintViolationException.class)
+    public final ResponseEntity<Object> handleSqlException(SQLIntegrityConstraintViolationException ex) {
         Map<String, Object> map = new HashMap<>();
         map.put("error", ex.getMessage());
         return new ResponseEntity<>(map, HttpStatus.BAD_REQUEST);

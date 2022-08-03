@@ -6,7 +6,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import theoneamin.bookings.backend.api.config.BookingEndpoints;
 import theoneamin.bookings.backend.api.config.ServiceEndpoints;
+import theoneamin.bookings.backend.api.entity.booking.BookingEntity;
 import theoneamin.bookings.backend.api.entity.services.ServiceEntity;
 import theoneamin.bookings.backend.api.entity.services.ServiceRequest;
 import theoneamin.bookings.backend.api.entity.services.ServiceResponse;
@@ -34,5 +36,18 @@ public class ServiceController {
         log.info("{} request: {}", ServiceEndpoints.SERVICE_ADD, serviceRequest);
         ServiceResponse response = servicesUtil.addService(serviceRequest);
         return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
+
+    @PutMapping(ServiceEndpoints.SERVICE_EDIT)
+    public ResponseEntity<ServiceResponse> editService(@PathVariable Integer id, @RequestBody ServiceEntity service) {
+        log.info("{} request: {}", ServiceEndpoints.SERVICE_EDIT, id);
+        return ResponseEntity.status(HttpStatus.OK).body(servicesUtil.editService(id, service));
+    }
+
+    @DeleteMapping(ServiceEndpoints.SERVICE_DELETE)
+    public ResponseEntity<String> deleteService(@PathVariable Integer id) {
+        log.info("{} request: {}", ServiceEndpoints.SERVICE_DELETE, id);
+        servicesUtil.deleteService(id);
+        return ResponseEntity.status(HttpStatus.OK).body("Successfully deleted service");
     }
 }
