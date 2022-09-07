@@ -44,28 +44,28 @@ public class BookingService {
         // get available slots
         BookingSlots bookingSlot = getAvailableBookingSlots(bookingRequest.getBookingDate(), staff.getId());
 
-        // validate date
-        if (bookingSlot == null) {
-            log.error("No booking slots available for date: {} for staff: {}", bookingRequest.getBookingDate(), bookingRequest.getStaffEmail());
-            throw new ApiException("No booking slots available for date: "+bookingRequest.getBookingDate()+" for staff: "+bookingRequest.getStaffEmail());
-        }
-
-        // validate booking time slot
-        boolean isTimeslotValid = isTimeslotValid(bookingRequest.getBookingSlots(), bookingSlot);
-        log.info("isTimeSlotValid: {}", isTimeslotValid);
-        if (!isTimeslotValid) {
-            log.error("Timeslot validation failed: {}, {}", bookingRequest.getBookingSlots(), bookingRequest.getBookingDate());
-            throw new ApiException("One or more of selected timeslots is already taken: "+bookingRequest.getBookingSlots());
-        }
+//        // validate date
+//        if (bookingSlot == null) {
+//            log.error("No booking slots available for date: {} for staff: {}", bookingRequest.getBookingDate(), bookingRequest.getStaffEmail());
+//            throw new ApiException("No booking slots available for date: "+bookingRequest.getBookingDate()+" for staff: "+bookingRequest.getStaffEmail());
+//        }
+//
+//        // validate booking time slot
+//        boolean isTimeslotValid = isTimeslotValid(bookingRequest.getBookingSlots(), bookingSlot);
+//        log.info("isTimeSlotValid: {}", isTimeslotValid);
+//        if (!isTimeslotValid) {
+//            log.error("Timeslot validation failed: {}, {}", bookingRequest.getBookingSlots(), bookingRequest.getBookingDate());
+//            throw new ApiException("One or more of selected timeslots is already taken: "+bookingRequest.getBookingSlots());
+//        }
 
         // remove selected bookings from timeslots for the day
-        bookingSlot.setTimeSlots(bookingSlot
-                .getTimeSlots()
-                .stream()
-                .filter(s -> !bookingRequest.getBookingSlots().contains(s))
-                .collect(Collectors.toList()));
-        BookingSlots updatedSlots = mongoTemplate.save(bookingSlot);
-        log.info("Updated booking slots: {} for: {}", updatedSlots, bookingRequest.getBookingDate());
+//        bookingSlot.setTimeSlots(bookingSlot
+//                .getTimeSlots()
+//                .stream()
+//                .filter(s -> !bookingRequest.getBookingSlots().contains(s))
+//                .collect(Collectors.toList()));
+//        BookingSlots updatedSlots = mongoTemplate.save(bookingSlot);
+//        log.info("Updated booking slots: {} for: {}", updatedSlots, bookingRequest.getBookingDate());
 
         BookingEntity booking = new BookingEntity();
         booking.setCustomerId(customer.getId());
