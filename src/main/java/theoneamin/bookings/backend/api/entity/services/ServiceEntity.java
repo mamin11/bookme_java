@@ -8,8 +8,6 @@ import lombok.EqualsAndHashCode;
 import org.hibernate.annotations.LazyCollection;
 import org.hibernate.annotations.LazyCollectionOption;
 import theoneamin.bookings.backend.api.entity.booking.BookingEntity;
-import theoneamin.bookings.backend.api.entity.booking.StaffTimeslot;
-import theoneamin.bookings.backend.api.entity.user.StaffEntity;
 import theoneamin.bookings.backend.api.entity.util.DateAudited;
 
 import javax.persistence.*;

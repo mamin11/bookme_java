@@ -27,8 +27,6 @@ public class StaffService {
 
     @Autowired StaffRepository staffRepository;
     @Autowired StaffServiceRepository staffServiceRepository;
-    @Autowired
-    StaffTimeSlotLinkRepository staffTimeSlotLinkRepository;
     @Autowired StaffWorkDayRepository staffWorkDayRepository;
 
 
