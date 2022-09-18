@@ -4,22 +4,27 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import theoneamin.bookings.backend.api.converter.UserTypeConverter;
+import theoneamin.bookings.backend.api.entity.util.DateAudited;
 import theoneamin.bookings.backend.api.enums.UserType;
 
 import javax.persistence.*;
+import java.io.Serializable;
 
 @Data
-@Entity(name = "users")
+@MappedSuperclass
+@EqualsAndHashCode(callSuper = true)
 @JsonNaming(PropertyNamingStrategies.LowerCamelCaseStrategy.class)
-public class UserEntity {
+public abstract class UserEntity extends DateAudited implements Serializable {
     private static final PasswordEncoder pwEncoder = new BCryptPasswordEncoder();
 
     @Id
     @GeneratedValue(strategy=GenerationType.AUTO)
-    private Integer id;
+    @Column(name = "user_id")
+    private Integer userId;
 
     @Column
     private String firstname;
@@ -44,16 +49,8 @@ public class UserEntity {
     @Convert(converter = UserTypeConverter.class)
     private UserType userType;
 
-    @Transient
-    private String fullName;
-
-    public String getFullName() {
-        return this.firstname+" "+this.lastname;
-    }
-
     @PrePersist
     public void prePersist(){
         password = pwEncoder.encode(password);
     }
-
 }

@@ -1,10 +1,8 @@
-package theoneamin.bookings.backend.api.entity.user;
+package theoneamin.bookings.backend.api.entity.user.request;
 
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import lombok.Data;
-import org.hibernate.validator.constraints.Length;
-import theoneamin.bookings.backend.api.enums.UserType;
 
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
@@ -12,7 +10,7 @@ import java.util.List;
 
 @Data
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
-public class UserRequest {
+public abstract class UserRequest {
     @NotEmpty(message = "Please provide firstname")
     private String firstname;
 
@@ -21,10 +19,6 @@ public class UserRequest {
 
     @NotEmpty(message = "Please provide email")
     private String email;
-
-    @NotEmpty(message = "Please provide password")
-    @Length(min = 6, message = "Password must be at least 6 characters")
-    private String password;
 
     @NotEmpty(message = "Please provide phone number")
     private String phone;
@@ -39,5 +33,4 @@ public class UserRequest {
     private List<Integer> workingDays;
 
     private Integer merchantId;
-
 }

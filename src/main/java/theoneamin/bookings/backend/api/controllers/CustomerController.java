@@ -8,9 +8,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import theoneamin.bookings.backend.api.config.CustomerEndpoints;
-import theoneamin.bookings.backend.api.entity.user.UserRequest;
-import theoneamin.bookings.backend.api.entity.user.UserEntity;
-import theoneamin.bookings.backend.api.entity.user.UserResponse;
+import theoneamin.bookings.backend.api.entity.user.request.CreateUserRequest;
+import theoneamin.bookings.backend.api.entity.user.CustomerEntity;
+import theoneamin.bookings.backend.api.entity.user.response.UserResponse;
 import theoneamin.bookings.backend.api.service.CustomerService;
 
 import javax.validation.Valid;
@@ -26,15 +26,15 @@ public class CustomerController {
     CustomerService customerService;
 
     @GetMapping(CustomerEndpoints.USERS_CUSTOMER)
-    public ResponseEntity<List<UserEntity>> getAllCustomers() {
+    public ResponseEntity<List<CustomerEntity>> getAllCustomers() {
         log.info("{} request", CustomerEndpoints.USERS_CUSTOMER);
         return ResponseEntity.status(HttpStatus.OK).body(customerService.getAllCustomers());
     }
 
     @PostMapping(CustomerEndpoints.CUSTOMER_ADD)
-    public ResponseEntity<UserResponse> addCustomer(@Valid @RequestBody UserRequest userRequest) {
+    public ResponseEntity<UserResponse> addCustomer(@Valid @RequestBody CreateUserRequest createUserRequest) {
         log.info("{} request", CustomerEndpoints.CUSTOMER_ADD);
-        return customerService.addCustomer(userRequest);
+        return customerService.addCustomer(createUserRequest);
     }
 
     @GetMapping(CustomerEndpoints.CUSTOMER_GET)
@@ -44,9 +44,9 @@ public class CustomerController {
     }
 
     @PutMapping(CustomerEndpoints.CUSTOMER_EDIT)
-    public ResponseEntity<UserResponse> editCustomer(@Valid @RequestBody UserRequest userRequest) {
+    public ResponseEntity<UserResponse> editCustomer(@Valid @RequestBody CreateUserRequest createUserRequest) {
         log.info("{} request", CustomerEndpoints.CUSTOMER_EDIT);
-        return customerService.editCustomer(userRequest);
+        return customerService.editCustomer(createUserRequest);
     }
 
     @DeleteMapping(CustomerEndpoints.CUSTOMER_DELETE)

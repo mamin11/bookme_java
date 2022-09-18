@@ -33,13 +33,12 @@ public class BookingController {
     public ResponseEntity<BookingResponse> addBooking(@Valid @RequestBody BookingRequest bookingRequest) {
         log.info("{} request: {}", BookingEndpoints.BOOKING_ADD, bookingRequest);
 
-        //todo: make transactional
         BookingResponse response = bookingService.createBooking(bookingRequest);
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
     @GetMapping(BookingEndpoints.BOOKING_BY_ID)
-    public ResponseEntity<BookingEntity> getBooking(@PathVariable String id) {
+    public ResponseEntity<BookingEntity> getBooking(@PathVariable Integer id) {
         log.info("{} request: {}", BookingEndpoints.BOOKING_BY_ID, id);
         return ResponseEntity.status(HttpStatus.OK).body(bookingService.getBookingById(id));
     }
@@ -74,14 +73,14 @@ public class BookingController {
         return ResponseEntity.status(HttpStatus.OK).body(bookingService.getByDate(date));
     }
 
-    @PutMapping(BookingEndpoints.BOOKING_EDIT)
-    public ResponseEntity<BookingEntity> editBooking(@PathVariable String id, @RequestBody BookingEntity booking) {
-        log.info("{} request: {}", BookingEndpoints.BOOKING_EDIT, id);
-        return ResponseEntity.status(HttpStatus.OK).body(bookingService.editBooking(id, booking));
-    }
+//    @PutMapping(BookingEndpoints.BOOKING_EDIT)
+//    public ResponseEntity<BookingEntity> editBooking(@PathVariable String id, @RequestBody BookingEntity booking) {
+//        log.info("{} request: {}", BookingEndpoints.BOOKING_EDIT, id);
+//        return ResponseEntity.status(HttpStatus.OK).body(bookingService.editBooking(id, booking));
+//    }
 
     @DeleteMapping(BookingEndpoints.BOOKING_DELETE)
-    public ResponseEntity<String> deleteBooking(@PathVariable String id) {
+    public ResponseEntity<String> deleteBooking(@PathVariable Integer id) {
         log.info("{} request: {}", BookingEndpoints.BOOKING_DELETE, id);
         bookingService.deleteBooking(id);
         return ResponseEntity.status(HttpStatus.OK).body("Successfully deleted booking");

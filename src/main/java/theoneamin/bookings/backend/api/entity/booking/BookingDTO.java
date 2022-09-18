@@ -6,6 +6,8 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
+import java.time.LocalTime;
 import java.util.List;
 
 @Data
@@ -14,7 +16,7 @@ import java.util.List;
 @NoArgsConstructor
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 public class BookingDTO {
-    private String bookingId;
+    private Integer bookingId;
     private String customerFirstName;
     private String customerEmail;
     private String staffEmail;

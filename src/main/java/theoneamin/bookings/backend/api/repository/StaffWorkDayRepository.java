@@ -1,9 +1,13 @@
 package theoneamin.bookings.backend.api.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
 import theoneamin.bookings.backend.api.entity.user.StaffWorkDayLink;
+import theoneamin.bookings.backend.api.enums.WorkDays;
 
-import javax.persistence.criteria.CriteriaBuilder;
+import java.util.List;
 
-public interface StaffWorkDayRepository extends JpaRepository<StaffWorkDayLink, CriteriaBuilder.In> {
+@Repository
+public interface StaffWorkDayRepository extends JpaRepository<StaffWorkDayLink, Integer> {
+    void deleteByWorkDayIn(List<WorkDays> workdaysInDbNotInRequest);
 }
