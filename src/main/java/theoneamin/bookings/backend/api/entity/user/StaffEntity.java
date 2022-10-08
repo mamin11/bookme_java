@@ -9,7 +9,7 @@ import lombok.ToString;
 import org.hibernate.annotations.LazyCollection;
 import org.hibernate.annotations.LazyCollectionOption;
 import theoneamin.bookings.backend.api.entity.booking.BookingEntity;
-import theoneamin.bookings.backend.api.entity.booking.StaffTimeslot;
+import theoneamin.bookings.backend.api.entity.timeslot.StaffTimeslot;
 
 import javax.persistence.*;
 import java.io.Serializable;

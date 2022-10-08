@@ -1,0 +1,14 @@
+version: "3"
+services:
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq
+    hostname: 'rabbitmq'
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    volumes:
+      - data:/var/lib/rabbitmq
+      - ./rabbitmq-defs.json:/opt/definitions.json
+      - ./rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf
+    restart: always

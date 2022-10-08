@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import theoneamin.bookings.backend.api.entity.booking.*;
 import theoneamin.bookings.backend.api.entity.services.ServiceEntity;
+import theoneamin.bookings.backend.api.entity.timeslot.StaffTimeslot;
 import theoneamin.bookings.backend.api.entity.user.CustomerEntity;
 import theoneamin.bookings.backend.api.entity.user.StaffEntity;
 import theoneamin.bookings.backend.api.entity.user.UserEntity;

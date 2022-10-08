@@ -1,4 +1,4 @@
-package theoneamin.bookings.backend.api.entity.booking;
+package theoneamin.bookings.backend.api.entity.timeslot;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
