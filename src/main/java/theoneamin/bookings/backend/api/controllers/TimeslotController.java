@@ -25,7 +25,7 @@ public class TimeslotController {
     @Autowired
     TimeslotService timeslotService;
 
-    @GetMapping(TimeslotEndpoints.STAFF_TIMESLOT_ALL)
+    @PostMapping(TimeslotEndpoints.STAFF_TIMESLOT_ALL)
     public ResponseEntity<List<StaffTimeslot>> getAllStaffTimeslots(@Valid @RequestBody TimeslotRequest timeslotRequest) {
         log.info("{} request", TimeslotEndpoints.STAFF_TIMESLOT_ALL);
         return ResponseEntity.status(HttpStatus.OK).body(timeslotService.getAllTimeslots(timeslotRequest));

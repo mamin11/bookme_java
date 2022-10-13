@@ -60,7 +60,8 @@ public class TimeslotService {
 //        List<StaffTimeslot> staffTimeslots = staffTimeslotRepository
 //                .findByStaffAndBookingDateAndBookingTimeIn(staff, bookingDate, mappedTimeList);
 
-        List<LocalTime> staffSavedTimeSlots = staff.getTimeslots().stream().map(StaffTimeslot::getBookingTime).collect(Collectors.toList());
+        List<LocalTime> staffSavedTimeSlots = staffTimeslotRepository.findByStaffAndBookingDate(staff, bookingDate)
+                .stream().map(StaffTimeslot::getBookingTime).collect(Collectors.toList());
 
         // get timeslots in request not in db - create them
         List<LocalTime> timeslotsToCreate = mappedTimeList
@@ -91,9 +92,7 @@ public class TimeslotService {
         });
         log.debug("Saved: {} timeslots for staff: {}", timeslotsToCreate.size(), staff.getUserId());
 
-        timeslotsToDelete.forEach(time -> {
-            staffTimeslotRepository.deleteByStaffAndBookingDateAndBookingTimeIn(staff, bookingDate, timeslotsToDelete);
-        });
+        timeslotsToDelete.forEach(time -> staffTimeslotRepository.deleteByStaffAndBookingDateAndBookingTimeIn(staff, bookingDate, timeslotsToDelete));
         log.debug("Deleted: {} timeslots for staff: {}", timeslotsToDelete.size(), staff.getUserId());
 
         // response

@@ -1,5 +1,6 @@
 package theoneamin.bookings.backend.api.entity.timeslot;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
@@ -30,6 +31,7 @@ public class StaffTimeslot extends DateAudited {
     private LocalDate bookingDate;
 
     @Column(name = "booking_time")
+    @JsonFormat(pattern = "HH:mm")
     private LocalTime bookingTime;
 
     @JsonIgnore
