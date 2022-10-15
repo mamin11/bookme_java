@@ -38,8 +38,8 @@ public class StaffController {
         return staffService.addStaff(createUserRequest);
     }
 
-    @PutMapping(StaffEndpoints.STAFF_EDIT)
-    public ResponseEntity<UserResponse> editStaff(@PathVariable Integer id, @Valid @RequestBody EditUserRequest editUserRequest) {
+    @PutMapping(path = StaffEndpoints.STAFF_EDIT, consumes = { MediaType.MULTIPART_FORM_DATA_VALUE })
+    public ResponseEntity<UserResponse> editStaff(@PathVariable Integer id, @Valid @ModelAttribute EditUserRequest editUserRequest) {
         log.info("{} request", StaffEndpoints.STAFF_EDIT);
         return staffService.editStaff(id, editUserRequest);
     }

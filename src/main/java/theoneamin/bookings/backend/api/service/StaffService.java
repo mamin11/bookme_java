@@ -188,7 +188,20 @@ public class StaffService {
         List<StaffServicesLink> userServicesInDB = user.getServicesLinks();
         List<Integer> userRequestServices = editUserRequest.getServices();
 
-        log.info("request: {}", editUserRequest);
+        if (editUserRequest.getImage() != null) {
+            // upload image and get link
+            String filename = handleImageUpload(user, editUserRequest.getImage());
+
+            // if there is previous image, delete it from store
+            if (user.getImage() != null) {
+                storageService.delete(BucketNames.BOOKING_APP_STORE.getStringValue(),
+                        String.format("%s/%s", String.format("%s/%s", FolderNames.PROFILE_PICTURES, user.getUserId()), user.getImage()));
+            }
+
+            // update user image
+            user.setImage(filename);
+
+        }
 
         // service-links to remove
         List<Integer> servicesInDbNotInRequest = userServicesInDB.stream()
@@ -290,6 +303,10 @@ public class StaffService {
     @Transactional
     public void deleteStaff(Integer id) {
         StaffEntity user = staffRepository.findById(id).orElseThrow(() -> new ApiException("User does not exist"));
+        if (user.getImage() != null) {
+            storageService.delete(BucketNames.BOOKING_APP_STORE.getStringValue(),
+                    String.format("%s/%s", String.format("%s/%s", FolderNames.PROFILE_PICTURES, user.getUserId()), user.getImage()));
+        }
         staffRepository.delete(user);
         log.info("Staff and related links deleted");
     }

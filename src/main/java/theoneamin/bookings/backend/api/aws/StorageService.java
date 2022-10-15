@@ -29,6 +29,7 @@ public class StorageService {
      * @param inputStream file input stream
      */
     public void save(String path, String fileName, ObjectMetadata metadata, InputStream inputStream) {
+        log.info("Saving: {} to: {}", fileName, path);
         try {
             s3.putObject(new PutObjectRequest(path, fileName, inputStream, metadata).withCannedAcl(CannedAccessControlList.PublicRead));
         } catch (AmazonServiceException e) {
@@ -43,6 +44,7 @@ public class StorageService {
      * @return File object
      */
     public S3ObjectInputStream download(String path, String key) {
+        log.info("Retrieving: {} from: {}", key, path);
         try {
             S3Object object =  s3.getObject(path, key);
             return object.getObjectContent();
