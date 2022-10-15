@@ -1,5 +1,6 @@
 package theoneamin.bookings.backend.api.service;
 
+import com.amazonaws.services.s3.model.ObjectMetadata;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -7,18 +8,24 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
+import org.springframework.web.multipart.MultipartFile;
+import theoneamin.bookings.backend.api.aws.StorageService;
 import theoneamin.bookings.backend.api.entity.user.*;
 import theoneamin.bookings.backend.api.entity.user.request.CreateUserRequest;
 import theoneamin.bookings.backend.api.entity.user.request.EditUserRequest;
 import theoneamin.bookings.backend.api.entity.user.response.UserDTO;
 import theoneamin.bookings.backend.api.entity.user.response.UserResponse;
+import theoneamin.bookings.backend.api.enums.BucketNames;
+import theoneamin.bookings.backend.api.enums.FolderNames;
 import theoneamin.bookings.backend.api.enums.UserType;
 import theoneamin.bookings.backend.api.enums.WorkDays;
 import theoneamin.bookings.backend.api.exception.ApiException;
 import theoneamin.bookings.backend.api.repository.*;
+import theoneamin.bookings.backend.api.utility.UtilityService;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.io.IOException;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -28,6 +35,8 @@ public class StaffService {
     @Autowired StaffRepository staffRepository;
     @Autowired StaffServiceRepository staffServiceRepository;
     @Autowired StaffWorkDayRepository staffWorkDayRepository;
+    @Autowired StorageService storageService;
+    @Autowired UtilityService utilityService;
 
 
     /**
@@ -42,7 +51,7 @@ public class StaffService {
                 .lastname(userEntity.getLastname())
                 .email(userEntity.getEmail())
                 .phone(userEntity.getPhone())
-                .image(userEntity.getImage())
+                .image(utilityService.getImageLink(userEntity))
                 .userType(userEntity.getUserType())
                 .allTimeBookings(0)
                 .fullName(userEntity.getFirstname()+" "+userEntity.getLastname())
@@ -61,8 +70,6 @@ public class StaffService {
         //validate email not taken
         staffRepository.findByEmail(createUserRequest.getEmail()).ifPresent(userEntity -> {throw new ApiException("Email already taken");});
 
-        // upload image and get link
-        //todo: upload image
 
         // create user
         StaffEntity user = new StaffEntity();
@@ -75,6 +82,15 @@ public class StaffService {
 
         StaffEntity savedStaff = staffRepository.save(user);
         log.info("Saved staff: {}", savedStaff);
+
+        if (createUserRequest.getImage() != null) {
+            // upload image and get link
+            String filename = handleImageUpload(savedStaff, createUserRequest.getImage());
+
+            // update user image
+            savedStaff.setImage(filename);
+            staffRepository.saveAndFlush(savedStaff);
+        }
 
         // create staff-services link
         createUserRequest.getServices().forEach(service -> {
@@ -113,6 +129,25 @@ public class StaffService {
                                 .fullName(savedStaff.getFirstname()+" "+savedStaff.getLastname())
                                 .build())
                         .build());
+    }
+
+    private String handleImageUpload(StaffEntity savedStaff, MultipartFile file) {
+        ObjectMetadata metadata = new ObjectMetadata();
+        metadata.setContentLength(file.getSize());
+        metadata.setContentType(file.getContentType());
+
+        //store the file
+        //create a path depending on the module course, so that all of a course's content is in the same bucket
+        String path = utilityService.constructFilePath(BucketNames.BOOKING_APP_STORE, FolderNames.PROFILE_PICTURES, savedStaff.getUserId());
+        //create a filename from original filename and random UUID
+        String filename = String.format("%s-%s", UUID.randomUUID(), file.getOriginalFilename());
+
+        try {
+            storageService.save(path, filename, metadata, file.getInputStream());
+            return filename;
+        } catch (IOException e) {
+            throw new IllegalStateException("error", e);
+        }
     }
 
     /**

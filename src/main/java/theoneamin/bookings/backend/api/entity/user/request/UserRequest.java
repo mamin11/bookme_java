@@ -3,6 +3,7 @@ package theoneamin.bookings.backend.api.entity.user.request;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import lombok.Data;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
@@ -33,4 +34,6 @@ public abstract class UserRequest {
     private List<Integer> workingDays;
 
     private Integer merchantId;
+
+    private MultipartFile image;
 }
