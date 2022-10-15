@@ -4,6 +4,7 @@ import com.amazonaws.AmazonServiceException;
 import com.amazonaws.SdkClientException;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.*;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -43,11 +44,13 @@ public class StorageService {
      * @param key file key
      * @return File object
      */
+    @SneakyThrows
     public S3ObjectInputStream download(String path, String key) {
         log.info("Retrieving: {} from: {}", key, path);
-        try {
-            S3Object object =  s3.getObject(path, key);
-            return object.getObjectContent();
+        try (S3Object object = s3.getObject(path, key)) {
+            S3ObjectInputStream objectContent = object.getObjectContent();
+            objectContent.abort(); // aborting since we only want to read URI and not content
+            return objectContent;
 //            return IOUtils.toByteArray(object.getObjectContent());
         } catch (AmazonServiceException e) {
             throw new IllegalStateException("Failed to get requested file from storage", e);
