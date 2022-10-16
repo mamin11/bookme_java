@@ -32,6 +32,18 @@ public class StaffController {
         return ResponseEntity.status(HttpStatus.OK).body(staffService.getAllStaff(pageNumber));
     }
 
+    @GetMapping(StaffEndpoints.STAFF_SEARCH)
+    public ResponseEntity<List<UserDTO>> searchStaff(@PathVariable String name) {
+        log.info("{} request", StaffEndpoints.STAFF_SEARCH);
+        return ResponseEntity.status(HttpStatus.OK).body(staffService.searchStaff(name));
+    }
+
+    @GetMapping(StaffEndpoints.PAGE_SIZE)
+    public ResponseEntity<Integer> pageSize() {
+        log.info("{} request", StaffEndpoints.PAGE_SIZE);
+        return ResponseEntity.status(HttpStatus.OK).body(staffService.getMaxPageSize());
+    }
+
     @PostMapping(path = StaffEndpoints.STAFF_ADD, consumes = { MediaType.MULTIPART_FORM_DATA_VALUE })
     public ResponseEntity<UserResponse> addStaff(@Valid @ModelAttribute CreateUserRequest createUserRequest) {
         log.info("{} request", StaffEndpoints.STAFF_ADD);

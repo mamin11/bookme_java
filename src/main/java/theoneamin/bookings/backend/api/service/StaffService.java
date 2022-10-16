@@ -6,12 +6,10 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 import theoneamin.bookings.backend.api.aws.StorageService;
 import theoneamin.bookings.backend.api.entity.user.*;
@@ -35,6 +33,7 @@ import java.util.stream.Collectors;
 @Service
 public class StaffService {
 
+    public static final int PAGE_SIZE = 5;
     @Autowired StaffRepository staffRepository;
     @Autowired StaffServiceRepository staffServiceRepository;
     @Autowired StaffWorkDayRepository staffWorkDayRepository;
@@ -48,9 +47,7 @@ public class StaffService {
      * @param pageNumber page number
      */
     public List<UserDTO> getAllStaff(Integer pageNumber) {
-        int pageSize = 5;
-        int maxPageNumber = (int) Math.ceil((double) staffRepository.countByUserType(UserType.STAFF)/pageSize);
-        Page<StaffEntity> userEntityList = staffRepository.findAllByUserType(UserType.STAFF, PageRequest.of(pageNumber, pageSize));
+        Page<StaffEntity> userEntityList = staffRepository.findAllByUserType(UserType.STAFF, PageRequest.of(pageNumber, PAGE_SIZE));
         return userEntityList.stream().map(userEntity -> UserDTO.builder()
                 .id(userEntity.getUserId())
                 .firstname(userEntity.getFirstname())
@@ -63,8 +60,37 @@ public class StaffService {
                 .fullName(userEntity.getFirstname()+" "+userEntity.getLastname())
                 .services(userEntity.getServicesLinks().stream().map(StaffServicesLink::getServiceId).collect(Collectors.toList()))
                 .working_days(userEntity.getWorkDayLinks().stream().map(StaffWorkDayLink::getWorkDay).map(WorkDays::getIntValue).collect(Collectors.toList()))
-                .maxPageSize(maxPageNumber)
                 .build()).collect(Collectors.toList());
+    }
+
+    /**
+     * Get all customers
+     * @return list of staff
+     * @param name staff name
+     */
+    public List<UserDTO> searchStaff(String name) {
+        List<StaffEntity> userEntityList = staffRepository.findByUserTypeAndFirstnameContainsOrLastnameContains(UserType.STAFF, name, name);
+        return userEntityList.stream().map(userEntity -> UserDTO.builder()
+                .id(userEntity.getUserId())
+                .firstname(userEntity.getFirstname())
+                .lastname(userEntity.getLastname())
+                .email(userEntity.getEmail())
+                .phone(userEntity.getPhone())
+                .image(utilityService.getImageLink(userEntity))
+                .userType(userEntity.getUserType())
+                .allTimeBookings(0)
+                .fullName(userEntity.getFirstname()+" "+userEntity.getLastname())
+                .services(userEntity.getServicesLinks().stream().map(StaffServicesLink::getServiceId).collect(Collectors.toList()))
+                .working_days(userEntity.getWorkDayLinks().stream().map(StaffWorkDayLink::getWorkDay).map(WorkDays::getIntValue).collect(Collectors.toList()))
+                .build()).collect(Collectors.toList());
+    }
+
+    /**
+     * Get max page size for staff users from the database
+     * @return max page size
+     */
+    public Integer getMaxPageSize(){
+        return (int) Math.ceil((double) staffRepository.countByUserType(UserType.STAFF)/PAGE_SIZE);
     }
 
     /**
