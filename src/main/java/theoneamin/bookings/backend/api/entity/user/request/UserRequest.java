@@ -27,12 +27,6 @@ public abstract class UserRequest {
     @NotNull(message = "Please provide user type")
     private Integer userType;
 
-    @NotNull(message = "Please provide at least 1 service")
-    private List<Integer> services;
-
-    @NotNull(message = "Please provide working days")
-    private List<Integer> workingDays;
-
     private Integer merchantId;
 
     private MultipartFile image;

@@ -7,10 +7,11 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 import theoneamin.bookings.backend.api.config.StaffEndpoints;
+import theoneamin.bookings.backend.api.entity.user.request.CreateStaffRequest;
+import theoneamin.bookings.backend.api.entity.user.request.EditStaffRequest;
 import theoneamin.bookings.backend.api.entity.user.request.EditUserRequest;
-import theoneamin.bookings.backend.api.entity.user.response.UserDTO;
+import theoneamin.bookings.backend.api.entity.user.response.StaffDTO;
 import theoneamin.bookings.backend.api.entity.user.request.CreateUserRequest;
 import theoneamin.bookings.backend.api.entity.user.response.UserResponse;
 import theoneamin.bookings.backend.api.service.StaffService;
@@ -27,13 +28,13 @@ public class StaffController {
     @Autowired StaffService staffService;
 
     @GetMapping(StaffEndpoints.USERS_STAFF)
-    public ResponseEntity<List<UserDTO>> getAllStaff(@PathVariable Integer pageNumber) {
+    public ResponseEntity<List<StaffDTO>> getAllStaff(@PathVariable Integer pageNumber) {
         log.info("{} request", StaffEndpoints.USERS_STAFF);
         return ResponseEntity.status(HttpStatus.OK).body(staffService.getAllStaff(pageNumber));
     }
 
     @GetMapping(StaffEndpoints.STAFF_SEARCH)
-    public ResponseEntity<List<UserDTO>> searchStaff(@PathVariable String name) {
+    public ResponseEntity<List<StaffDTO>> searchStaff(@PathVariable String name) {
         log.info("{} request", StaffEndpoints.STAFF_SEARCH);
         return ResponseEntity.status(HttpStatus.OK).body(staffService.searchStaff(name));
     }
@@ -45,13 +46,13 @@ public class StaffController {
     }
 
     @PostMapping(path = StaffEndpoints.STAFF_ADD, consumes = { MediaType.MULTIPART_FORM_DATA_VALUE })
-    public ResponseEntity<UserResponse> addStaff(@Valid @ModelAttribute CreateUserRequest createUserRequest) {
+    public ResponseEntity<UserResponse> addStaff(@Valid @ModelAttribute CreateStaffRequest createStaffRequest) {
         log.info("{} request", StaffEndpoints.STAFF_ADD);
-        return staffService.addStaff(createUserRequest);
+        return staffService.addStaff(createStaffRequest);
     }
 
     @PutMapping(path = StaffEndpoints.STAFF_EDIT, consumes = { MediaType.MULTIPART_FORM_DATA_VALUE })
-    public ResponseEntity<UserResponse> editStaff(@PathVariable Integer id, @Valid @ModelAttribute EditUserRequest editUserRequest) {
+    public ResponseEntity<UserResponse> editStaff(@PathVariable Integer id, @Valid @ModelAttribute EditStaffRequest editUserRequest) {
         log.info("{} request", StaffEndpoints.STAFF_EDIT);
         return staffService.editStaff(id, editUserRequest);
     }

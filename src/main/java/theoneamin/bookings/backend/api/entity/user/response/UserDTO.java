@@ -1,17 +1,16 @@
 package theoneamin.bookings.backend.api.entity.user.response;
 
 import lombok.Builder;
-import lombok.Data;;
+import lombok.Data;
+import lombok.experimental.SuperBuilder;
 import theoneamin.bookings.backend.api.enums.UserType;
-import javax.persistence.Transient;
-import java.util.List;
 
 /**
  * We use DTO to map data from entities so that
  * we only expose what's needed
  */
 @Data
-@Builder
+@SuperBuilder
 public class UserDTO {
     private Integer id;
     private String firstname;
@@ -22,6 +21,4 @@ public class UserDTO {
     private UserType userType;
     private Integer allTimeBookings;
     private String fullName;
-    private List<Integer> services;
-    private List<Integer> working_days;
 }

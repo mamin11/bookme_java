@@ -13,9 +13,11 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import theoneamin.bookings.backend.api.aws.StorageService;
 import theoneamin.bookings.backend.api.entity.user.*;
+import theoneamin.bookings.backend.api.entity.user.request.CreateStaffRequest;
 import theoneamin.bookings.backend.api.entity.user.request.CreateUserRequest;
+import theoneamin.bookings.backend.api.entity.user.request.EditStaffRequest;
 import theoneamin.bookings.backend.api.entity.user.request.EditUserRequest;
-import theoneamin.bookings.backend.api.entity.user.response.UserDTO;
+import theoneamin.bookings.backend.api.entity.user.response.StaffDTO;
 import theoneamin.bookings.backend.api.entity.user.response.UserResponse;
 import theoneamin.bookings.backend.api.enums.BucketNames;
 import theoneamin.bookings.backend.api.enums.FolderNames;
@@ -46,9 +48,9 @@ public class StaffService {
      * @return list of staff
      * @param pageNumber page number
      */
-    public List<UserDTO> getAllStaff(Integer pageNumber) {
+    public List<StaffDTO> getAllStaff(Integer pageNumber) {
         Page<StaffEntity> userEntityList = staffRepository.findAllByUserType(UserType.STAFF, PageRequest.of(pageNumber, PAGE_SIZE));
-        return userEntityList.stream().map(userEntity -> UserDTO.builder()
+        return userEntityList.stream().map(userEntity -> StaffDTO.builder()
                 .id(userEntity.getUserId())
                 .firstname(userEntity.getFirstname())
                 .lastname(userEntity.getLastname())
@@ -68,9 +70,9 @@ public class StaffService {
      * @return list of staff
      * @param name staff name
      */
-    public List<UserDTO> searchStaff(String name) {
-        List<StaffEntity> userEntityList = staffRepository.findByUserTypeAndFirstnameContainsOrLastnameContains(UserType.STAFF, name, name);
-        return userEntityList.stream().map(userEntity -> UserDTO.builder()
+    public List<StaffDTO> searchStaff(String name) {
+        List<StaffEntity> userEntityList = staffRepository.findByUserTypeAndFirstnameContainsOrUserTypeAndLastnameContains(UserType.STAFF, name, UserType.STAFF, name);
+        return userEntityList.stream().map(userEntity -> StaffDTO.builder()
                 .id(userEntity.getUserId())
                 .firstname(userEntity.getFirstname())
                 .lastname(userEntity.getLastname())
@@ -99,7 +101,7 @@ public class StaffService {
      * @return added user and message
      */
     @Transactional
-    public ResponseEntity<UserResponse> addStaff(CreateUserRequest createUserRequest) {
+    public ResponseEntity<UserResponse> addStaff(CreateStaffRequest createUserRequest) {
         //validate email not taken
         staffRepository.findByEmail(createUserRequest.getEmail()).ifPresent(userEntity -> {throw new ApiException("Email already taken");});
 
@@ -118,7 +120,7 @@ public class StaffService {
 
         if (createUserRequest.getImage() != null) {
             // upload image and get link
-            String filename = handleImageUpload(savedStaff, createUserRequest.getImage());
+            String filename = utilityService.handleImageUpload(savedStaff, createUserRequest.getImage());
 
             // update user image
             savedStaff.setImage(filename);
@@ -150,7 +152,7 @@ public class StaffService {
         return ResponseEntity.status(HttpStatus.OK)
                 .body(UserResponse.builder()
                         .message("successfully added user")
-                        .user(UserDTO.builder()
+                        .user(StaffDTO.builder()
                                 .id(savedStaff.getUserId())
                                 .firstname(savedStaff.getFirstname())
                                 .lastname(savedStaff.getLastname())
@@ -164,25 +166,6 @@ public class StaffService {
                         .build());
     }
 
-    private String handleImageUpload(StaffEntity savedStaff, MultipartFile file) {
-        ObjectMetadata metadata = new ObjectMetadata();
-        metadata.setContentLength(file.getSize());
-        metadata.setContentType(file.getContentType());
-
-        //store the file
-        //create a path depending on the module course, so that all of a course's content is in the same bucket
-        String path = utilityService.constructFilePath(BucketNames.BOOKING_APP_STORE, FolderNames.PROFILE_PICTURES, savedStaff.getUserId());
-        //create a filename from original filename and random UUID
-        String filename = String.format("%s-%s", UUID.randomUUID(), file.getOriginalFilename());
-
-        try {
-            storageService.save(path, filename, metadata, file.getInputStream());
-            return filename;
-        } catch (IOException e) {
-            throw new IllegalStateException("error", e);
-        }
-    }
-
     /**
      * Get user by email
      * @param email email address
@@ -193,7 +176,7 @@ public class StaffService {
         return ResponseEntity.status(HttpStatus.OK)
                 .body(UserResponse.builder()
                         .message("success")
-                        .user(UserDTO.builder()
+                        .user(StaffDTO.builder()
                                 .id(user.getUserId())
                                 .firstname(user.getFirstname())
                                 .lastname(user.getLastname())
@@ -213,7 +196,7 @@ public class StaffService {
      * @return user response
      */
     @Transactional
-    public ResponseEntity<UserResponse> editStaff(Integer id, EditUserRequest editUserRequest) {
+    public ResponseEntity<UserResponse> editStaff(Integer id, EditStaffRequest editUserRequest) {
         // validate staff email
         StaffEntity user = staffRepository.findById(id).orElseThrow(() -> new ApiException("User does not exist"));
         BeanUtils.copyProperties(editUserRequest, user);
@@ -223,7 +206,7 @@ public class StaffService {
 
         if (editUserRequest.getImage() != null) {
             // upload image and get link
-            String filename = handleImageUpload(user, editUserRequest.getImage());
+            String filename = utilityService.handleImageUpload(user, editUserRequest.getImage());
 
             // if there is previous image, delete it from store
             if (user.getImage() != null) {
@@ -234,6 +217,14 @@ public class StaffService {
             // update user image
             user.setImage(filename);
 
+        } else {
+            if (user.getImage() != null) {
+                storageService.delete(BucketNames.BOOKING_APP_STORE.getStringValue(),
+                        String.format("%s/%s", String.format("%s/%s", FolderNames.PROFILE_PICTURES, user.getUserId()), user.getImage()));
+
+                // update user image
+                user.setImage(null);
+            }
         }
 
         // service-links to remove
@@ -276,7 +267,7 @@ public class StaffService {
 
         return ResponseEntity.status(HttpStatus.OK)
                 .body(UserResponse.builder().message("User updated")
-                        .user(UserDTO.builder()
+                        .user(StaffDTO.builder()
                                 .id(user.getUserId())
                                 .firstname(user.getFirstname())
                                 .lastname(user.getLastname())

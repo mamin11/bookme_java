@@ -1,13 +1,18 @@
 package theoneamin.bookings.backend.api.utility;
 
 
+import com.amazonaws.services.s3.model.ObjectMetadata;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 import theoneamin.bookings.backend.api.aws.StorageService;
 import theoneamin.bookings.backend.api.entity.user.UserEntity;
 import theoneamin.bookings.backend.api.enums.BucketNames;
 import theoneamin.bookings.backend.api.enums.FolderNames;
+
+import java.io.IOException;
+import java.util.UUID;
 
 /**
  * This class contains utility methods that can be used for various purposes
@@ -55,5 +60,30 @@ public class UtilityService {
      */
     public String constructFilePath(BucketNames bucketName, FolderNames folderName, Integer key) {
         return String.format("%s/%s/%S", bucketName.getStringValue(), folderName, key);
+    }
+
+    /**
+     * Handles profile picture upload
+     * @param userEntity user
+     * @param file file
+     * @return image link
+     */
+    public String handleImageUpload(UserEntity userEntity, MultipartFile file) {
+        ObjectMetadata metadata = new ObjectMetadata();
+        metadata.setContentLength(file.getSize());
+        metadata.setContentType(file.getContentType());
+
+        //store the file
+        //create a path depending on the module course, so that all of a course's content is in the same bucket
+        String path = constructFilePath(BucketNames.BOOKING_APP_STORE, FolderNames.PROFILE_PICTURES, userEntity.getUserId());
+        //create a filename from original filename and random UUID
+        String filename = String.format("%s-%s", UUID.randomUUID(), file.getOriginalFilename());
+
+        try {
+            storageService.save(path, filename, metadata, file.getInputStream());
+            return filename;
+        } catch (IOException e) {
+            throw new IllegalStateException("error", e);
+        }
     }
 }

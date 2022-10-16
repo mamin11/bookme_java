@@ -14,5 +14,5 @@ public interface UserRepository<T extends UserEntity> {
     List<T> findAllByUserType(UserType userType);
     Page<T> findAllByUserType(UserType userType, Pageable pageable);
     Integer countByUserType(UserType userType);
-    List<T> findByUserTypeAndFirstnameContainsOrLastnameContains(UserType userType, String param1, String param2);
+    List<T> findByUserTypeAndFirstnameContainsOrUserTypeAndLastnameContains(UserType userType1, String param1, UserType userType2, String param2);
 }
