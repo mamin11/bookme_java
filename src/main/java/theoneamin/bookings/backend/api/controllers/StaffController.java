@@ -10,9 +10,7 @@ import org.springframework.web.bind.annotation.*;
 import theoneamin.bookings.backend.api.config.StaffEndpoints;
 import theoneamin.bookings.backend.api.entity.user.request.CreateStaffRequest;
 import theoneamin.bookings.backend.api.entity.user.request.EditStaffRequest;
-import theoneamin.bookings.backend.api.entity.user.request.EditUserRequest;
 import theoneamin.bookings.backend.api.entity.user.response.StaffDTO;
-import theoneamin.bookings.backend.api.entity.user.request.CreateUserRequest;
 import theoneamin.bookings.backend.api.entity.user.response.UserResponse;
 import theoneamin.bookings.backend.api.service.StaffService;
 
@@ -28,9 +26,15 @@ public class StaffController {
     @Autowired StaffService staffService;
 
     @GetMapping(StaffEndpoints.USERS_STAFF)
-    public ResponseEntity<List<StaffDTO>> getAllStaff(@PathVariable Integer pageNumber) {
+    public ResponseEntity<List<StaffDTO>> getPageStaff(@PathVariable Integer pageNumber) {
         log.info("{} request", StaffEndpoints.USERS_STAFF);
-        return ResponseEntity.status(HttpStatus.OK).body(staffService.getAllStaff(pageNumber));
+        return ResponseEntity.status(HttpStatus.OK).body(staffService.getPageStaff(pageNumber));
+    }
+
+    @GetMapping(StaffEndpoints.USERS_STAFF_ALL)
+    public ResponseEntity<List<StaffDTO>> getAllStaff() {
+        log.info("{} request", StaffEndpoints.USERS_STAFF);
+        return ResponseEntity.status(HttpStatus.OK).body(staffService.getAllStaff());
     }
 
     @GetMapping(StaffEndpoints.STAFF_SEARCH)

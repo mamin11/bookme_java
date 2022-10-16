@@ -30,9 +30,15 @@ public class CustomerController {
     CustomerService customerService;
 
     @GetMapping(CustomerEndpoints.USERS_CUSTOMER)
-    public ResponseEntity<List<UserDTO>> getAllCustomers(@PathVariable Integer pageNumber) {
+    public ResponseEntity<List<UserDTO>> getPageCustomers(@PathVariable Integer pageNumber) {
         log.info("{} request", CustomerEndpoints.USERS_CUSTOMER);
-        return ResponseEntity.status(HttpStatus.OK).body(customerService.getAllCustomers(pageNumber));
+        return ResponseEntity.status(HttpStatus.OK).body(customerService.getPageCustomers(pageNumber));
+    }
+
+    @GetMapping(CustomerEndpoints.USERS_CUSTOMER_ALL)
+    public ResponseEntity<List<UserDTO>> getAllCustomers() {
+        log.info("{} request", CustomerEndpoints.USERS_CUSTOMER);
+        return ResponseEntity.status(HttpStatus.OK).body(customerService.getAllCustomers());
     }
 
     @GetMapping(CustomerEndpoints.CUSTOMER_SEARCH)

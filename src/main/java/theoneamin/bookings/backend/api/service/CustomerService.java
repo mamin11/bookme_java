@@ -41,8 +41,27 @@ public class CustomerService {
      * @return list of customers
      * @param pageNumber page number
      */
-    public List<UserDTO> getAllCustomers(Integer pageNumber) {
+    public List<UserDTO> getPageCustomers(Integer pageNumber) {
         Page<CustomerEntity> userEntityList = customerRepository.findAllByUserType(UserType.CUSTOMER, PageRequest.of(pageNumber, PAGE_SIZE));
+        return userEntityList.stream().map(userEntity -> UserDTO.builder()
+                .id(userEntity.getUserId())
+                .firstname(userEntity.getFirstname())
+                .lastname(userEntity.getLastname())
+                .email(userEntity.getEmail())
+                .phone(userEntity.getPhone())
+                .image(utilityService.getImageLink(userEntity))
+                .userType(userEntity.getUserType())
+                .allTimeBookings(0)
+                .fullName(userEntity.getFirstname()+" "+userEntity.getLastname())
+                .build()).collect(Collectors.toList());
+    }
+
+    /**
+     * Get all customers
+     * @return list of customers
+     */
+    public List<UserDTO> getAllCustomers() {
+        List<CustomerEntity> userEntityList = customerRepository.findAllByUserType(UserType.CUSTOMER);
         return userEntityList.stream().map(userEntity -> UserDTO.builder()
                 .id(userEntity.getUserId())
                 .firstname(userEntity.getFirstname())

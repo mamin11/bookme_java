@@ -48,8 +48,29 @@ public class StaffService {
      * @return list of staff
      * @param pageNumber page number
      */
-    public List<StaffDTO> getAllStaff(Integer pageNumber) {
+    public List<StaffDTO> getPageStaff(Integer pageNumber) {
         Page<StaffEntity> userEntityList = staffRepository.findAllByUserType(UserType.STAFF, PageRequest.of(pageNumber, PAGE_SIZE));
+        return userEntityList.stream().map(userEntity -> StaffDTO.builder()
+                .id(userEntity.getUserId())
+                .firstname(userEntity.getFirstname())
+                .lastname(userEntity.getLastname())
+                .email(userEntity.getEmail())
+                .phone(userEntity.getPhone())
+                .image(utilityService.getImageLink(userEntity))
+                .userType(userEntity.getUserType())
+                .allTimeBookings(0)
+                .fullName(userEntity.getFirstname()+" "+userEntity.getLastname())
+                .services(userEntity.getServicesLinks().stream().map(StaffServicesLink::getServiceId).collect(Collectors.toList()))
+                .working_days(userEntity.getWorkDayLinks().stream().map(StaffWorkDayLink::getWorkDay).map(WorkDays::getIntValue).collect(Collectors.toList()))
+                .build()).collect(Collectors.toList());
+    }
+
+    /**
+     * Get all customers
+     * @return list of staff
+     */
+    public List<StaffDTO> getAllStaff() {
+        List<StaffEntity> userEntityList = staffRepository.findAllByUserType(UserType.STAFF);
         return userEntityList.stream().map(userEntity -> StaffDTO.builder()
                 .id(userEntity.getUserId())
                 .firstname(userEntity.getFirstname())
