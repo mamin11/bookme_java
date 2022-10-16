@@ -27,9 +27,9 @@ public class StaffController {
     @Autowired StaffService staffService;
 
     @GetMapping(StaffEndpoints.USERS_STAFF)
-    public ResponseEntity<List<UserDTO>> getAllStaff() {
+    public ResponseEntity<List<UserDTO>> getAllStaff(@PathVariable Integer pageNumber) {
         log.info("{} request", StaffEndpoints.USERS_STAFF);
-        return ResponseEntity.status(HttpStatus.OK).body(staffService.getAllStaff());
+        return ResponseEntity.status(HttpStatus.OK).body(staffService.getAllStaff(pageNumber));
     }
 
     @PostMapping(path = StaffEndpoints.STAFF_ADD, consumes = { MediaType.MULTIPART_FORM_DATA_VALUE })

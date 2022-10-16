@@ -4,6 +4,9 @@ import com.amazonaws.services.s3.model.ObjectMetadata;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -42,9 +45,12 @@ public class StaffService {
     /**
      * Get all customers
      * @return list of staff
+     * @param pageNumber page number
      */
-    public List<UserDTO> getAllStaff() {
-        List<StaffEntity> userEntityList = staffRepository.findAllByUserType(UserType.STAFF);
+    public List<UserDTO> getAllStaff(Integer pageNumber) {
+        int pageSize = 5;
+        int maxPageNumber = (int) Math.ceil((double) staffRepository.countByUserType(UserType.STAFF)/pageSize);
+        Page<StaffEntity> userEntityList = staffRepository.findAllByUserType(UserType.STAFF, PageRequest.of(pageNumber, pageSize));
         return userEntityList.stream().map(userEntity -> UserDTO.builder()
                 .id(userEntity.getUserId())
                 .firstname(userEntity.getFirstname())
@@ -57,6 +63,7 @@ public class StaffService {
                 .fullName(userEntity.getFirstname()+" "+userEntity.getLastname())
                 .services(userEntity.getServicesLinks().stream().map(StaffServicesLink::getServiceId).collect(Collectors.toList()))
                 .working_days(userEntity.getWorkDayLinks().stream().map(StaffWorkDayLink::getWorkDay).map(WorkDays::getIntValue).collect(Collectors.toList()))
+                .maxPageSize(maxPageNumber)
                 .build()).collect(Collectors.toList());
     }
 

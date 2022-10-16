@@ -24,4 +24,5 @@ public class UserDTO {
     private String fullName;
     private List<Integer> services;
     private List<Integer> working_days;
+    private Integer maxPageSize;
 }
