@@ -8,8 +8,10 @@ import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import org.hibernate.annotations.LazyCollection;
 import org.hibernate.annotations.LazyCollectionOption;
+import theoneamin.bookings.backend.api.converter.WorkHourSettingConverter;
 import theoneamin.bookings.backend.api.entity.booking.BookingEntity;
 import theoneamin.bookings.backend.api.entity.timeslot.StaffTimeslot;
+import theoneamin.bookings.backend.api.enums.WorkHourSetting;
 
 import javax.persistence.*;
 import java.io.Serializable;
@@ -27,6 +29,10 @@ import java.util.List;
 @EqualsAndHashCode(callSuper = true)
 @JsonNaming(PropertyNamingStrategies.LowerCamelCaseStrategy.class)
 public class StaffEntity extends UserEntity implements Serializable {
+
+    @Column
+    @Convert(converter = WorkHourSettingConverter.class)
+    private WorkHourSetting workingHoursSetting;
 
     @JsonIgnore
     @ToString.Exclude
@@ -51,4 +57,10 @@ public class StaffEntity extends UserEntity implements Serializable {
     @OneToMany(fetch = FetchType.LAZY, targetEntity = StaffTimeslot.class, mappedBy = "staff", cascade = CascadeType.REMOVE)
     @LazyCollection(LazyCollectionOption.EXTRA)
     private List<StaffTimeslot> timeslots;
+
+    @JsonIgnore
+    @ToString.Exclude
+    @OneToMany(fetch = FetchType.LAZY, targetEntity = WorkHourEntity.class, mappedBy = "staff", cascade = CascadeType.REMOVE)
+    @LazyCollection(LazyCollectionOption.EXTRA)
+    private List<WorkHourEntity> workingHours;
 }

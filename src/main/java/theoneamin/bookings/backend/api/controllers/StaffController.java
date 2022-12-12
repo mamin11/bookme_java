@@ -5,11 +5,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.BindingResult;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import theoneamin.bookings.backend.api.config.StaffEndpoints;
 import theoneamin.bookings.backend.api.entity.user.request.CreateStaffRequest;
 import theoneamin.bookings.backend.api.entity.user.request.EditStaffRequest;
+import theoneamin.bookings.backend.api.entity.user.request.UserPageRequest;
 import theoneamin.bookings.backend.api.entity.user.response.StaffDTO;
 import theoneamin.bookings.backend.api.entity.user.response.UserResponse;
 import theoneamin.bookings.backend.api.service.StaffService;
@@ -25,15 +27,16 @@ import java.util.List;
 public class StaffController {
     @Autowired StaffService staffService;
 
-    @GetMapping(StaffEndpoints.USERS_STAFF)
-    public ResponseEntity<List<StaffDTO>> getPageStaff(@PathVariable Integer pageNumber) {
+    @PostMapping(StaffEndpoints.USERS_STAFF)
+    public ResponseEntity<List<StaffDTO>> getPageStaff(@RequestBody UserPageRequest userPageRequest) {
         log.info("{} request", StaffEndpoints.USERS_STAFF);
-        return ResponseEntity.status(HttpStatus.OK).body(staffService.getPageStaff(pageNumber));
+        log.info("page request: {}", userPageRequest);
+        return ResponseEntity.status(HttpStatus.OK).body(staffService.getPageStaff(userPageRequest));
     }
 
     @GetMapping(StaffEndpoints.USERS_STAFF_ALL)
     public ResponseEntity<List<StaffDTO>> getAllStaff() {
-        log.info("{} request", StaffEndpoints.USERS_STAFF);
+        log.info("{} request", StaffEndpoints.USERS_STAFF_ALL);
         return ResponseEntity.status(HttpStatus.OK).body(staffService.getAllStaff());
     }
 
@@ -44,14 +47,15 @@ public class StaffController {
     }
 
     @GetMapping(StaffEndpoints.PAGE_SIZE)
-    public ResponseEntity<Integer> pageSize() {
+    public ResponseEntity<Integer> pageSize(@PathVariable Integer pageSize) {
         log.info("{} request", StaffEndpoints.PAGE_SIZE);
-        return ResponseEntity.status(HttpStatus.OK).body(staffService.getMaxPageSize());
+        return ResponseEntity.status(HttpStatus.OK).body(staffService.getMaxPageSize(pageSize));
     }
 
     @PostMapping(path = StaffEndpoints.STAFF_ADD, consumes = { MediaType.MULTIPART_FORM_DATA_VALUE })
-    public ResponseEntity<UserResponse> addStaff(@Valid @ModelAttribute CreateStaffRequest createStaffRequest) {
+    public ResponseEntity<UserResponse> addStaff(@Valid @ModelAttribute CreateStaffRequest createStaffRequest, BindingResult result) {
         log.info("{} request", StaffEndpoints.STAFF_ADD);
+        log.debug("Binding result: {}", result);
         return staffService.addStaff(createStaffRequest);
     }
 
