@@ -19,6 +19,6 @@ import java.util.List;
 public class StaffDTO extends UserDTO {
     private List<Integer> services;
     private List<Integer> working_days;
-    private String workingHoursChoice;
+    private Integer workingHoursChoice;
     private List<StaffWorkHoursDTO> workingHours;
 }

@@ -4,8 +4,6 @@ import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-
-import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import java.util.List;
 
@@ -19,8 +17,8 @@ public class CreateStaffRequest extends CreateUserRequest{
     @NotNull(message = "Please provide working days")
     private List<Integer> workingDays;
 
-    @NotEmpty(message = "Please choose either default or custom working hours")
-    private String workHoursChoice;
+    @NotNull(message = "Please choose either default or custom working hours")
+    private Integer workHoursChoice;
 
     private List<StaffWorkHoursDTO> workingHours;
 

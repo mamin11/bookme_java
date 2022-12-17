@@ -4,27 +4,27 @@ import java.util.HashMap;
 import java.util.Map;
 
 public enum WorkHourSetting {
-    CUSTOM("Custom"), DEFAULT("Default");
+    DEFAULT(0), CUSTOM(1);
 
-    private final String string;
+    private final Integer integer;
 
-    private static final Map<String, WorkHourSetting> VALUES = new HashMap<>();
+    private static final Map<Integer, WorkHourSetting> VALUES = new HashMap<>();
 
     static {
         for (WorkHourSetting type : values()) {
-            VALUES.put(type.string, type);
+            VALUES.put(type.integer, type);
         }
     }
 
-    WorkHourSetting(String value) {
-        string = value;
+    WorkHourSetting(Integer value) {
+        integer = value;
     }
 
-    public String getString() {
-        return string;
+    public Integer getInteger() {
+        return integer;
     }
 
-    public static WorkHourSetting getWorkHourSetting(String string) {
-        return VALUES.get(string);
+    public static WorkHourSetting getWorkHourSetting(Integer integer) {
+        return VALUES.get(integer);
     }
 }

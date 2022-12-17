@@ -4,21 +4,21 @@ import theoneamin.bookings.backend.api.enums.WorkHourSetting;
 
 import javax.persistence.AttributeConverter;
 
-public class WorkHourSettingConverter implements AttributeConverter<WorkHourSetting, String> {
+public class WorkHourSettingConverter implements AttributeConverter<WorkHourSetting, Integer> {
     @Override
-    public String convertToDatabaseColumn(WorkHourSetting workHourSetting) {
+    public Integer convertToDatabaseColumn(WorkHourSetting workHourSetting) {
         if (workHourSetting == null) {
             return null;
         }
 
-        return workHourSetting.getString();
+        return workHourSetting.getInteger();
     }
 
     @Override
-    public WorkHourSetting convertToEntityAttribute(String string) {
-        if (string == null) {
+    public WorkHourSetting convertToEntityAttribute(Integer integer) {
+        if (integer == null) {
             return null;
         }
-        return WorkHourSetting.getWorkHourSetting(string);
+        return WorkHourSetting.getWorkHourSetting(integer);
     }
 }

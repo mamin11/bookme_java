@@ -14,10 +14,7 @@ import theoneamin.bookings.backend.api.entity.user.*;
 import theoneamin.bookings.backend.api.entity.user.request.*;
 import theoneamin.bookings.backend.api.entity.user.response.StaffDTO;
 import theoneamin.bookings.backend.api.entity.user.response.UserResponse;
-import theoneamin.bookings.backend.api.enums.BucketNames;
-import theoneamin.bookings.backend.api.enums.FolderNames;
-import theoneamin.bookings.backend.api.enums.UserType;
-import theoneamin.bookings.backend.api.enums.WorkDays;
+import theoneamin.bookings.backend.api.enums.*;
 import theoneamin.bookings.backend.api.exception.ApiException;
 import theoneamin.bookings.backend.api.repository.*;
 import theoneamin.bookings.backend.api.utility.UtilityService;
@@ -58,7 +55,7 @@ public class StaffService {
                 .fullName(userEntity.getFirstname()+" "+userEntity.getLastname())
                 .services(userEntity.getServicesLinks().stream().map(StaffServicesLink::getServiceId).collect(Collectors.toList()))
                 .working_days(userEntity.getWorkDayLinks().stream().map(StaffWorkDayLink::getWorkDay).map(WorkDays::getIntValue).collect(Collectors.toList()))
-                .workingHoursChoice(userEntity.getWorkingHoursSetting() != null ? userEntity.getWorkingHoursSetting().getString() : null)
+                .workingHoursChoice(userEntity.getWorkingHoursSetting() != null ? userEntity.getWorkingHoursSetting().getInteger() : null)
                 .workingHours(userEntity.getWorkingHours().stream().map(workHourEntity -> {
                     StaffWorkHoursDTO workHoursDTO = new StaffWorkHoursDTO();
                     workHoursDTO.setWorkDay(workHourEntity.getWorkDay().getIntValue());
@@ -87,7 +84,7 @@ public class StaffService {
                 .fullName(userEntity.getFirstname()+" "+userEntity.getLastname())
                 .services(userEntity.getServicesLinks().stream().map(StaffServicesLink::getServiceId).collect(Collectors.toList()))
                 .working_days(userEntity.getWorkDayLinks().stream().map(StaffWorkDayLink::getWorkDay).map(WorkDays::getIntValue).collect(Collectors.toList()))
-                .workingHoursChoice(userEntity.getWorkingHoursSetting() != null ? userEntity.getWorkingHoursSetting().getString() : null)
+                .workingHoursChoice(userEntity.getWorkingHoursSetting() != null ? userEntity.getWorkingHoursSetting().getInteger() : null)
                 .workingHours(userEntity.getWorkingHours().stream().map(workHourEntity -> {
                     StaffWorkHoursDTO workHoursDTO = new StaffWorkHoursDTO();
                     workHoursDTO.setWorkDay(workHourEntity.getWorkDay().getIntValue());
@@ -147,6 +144,7 @@ public class StaffService {
         user.setUserType(UserType.getUserType(createUserRequest.getUserType()));
         user.setPassword(createUserRequest.getPassword());
         user.setPhone(createUserRequest.getPhone());
+        user.setWorkingHoursSetting(WorkHourSetting.getWorkHourSetting(createUserRequest.getWorkHoursChoice()));
 
         StaffEntity savedStaff = staffRepository.save(user);
         log.info("Saved staff: {}", savedStaff);
@@ -183,7 +181,7 @@ public class StaffService {
         log.info("Saved working days: {} for staff: {}", savedWorkDays, savedStaff.getUserId());
 
         // save working-hours
-        if (createUserRequest.getWorkHoursChoice().equals("Custom")) {
+        if (Objects.equals(createUserRequest.getWorkHoursChoice(), WorkHourSetting.CUSTOM.getInteger())) {
             if (createUserRequest.getWorkingHours().isEmpty()) {
                 log.error("Custom work hours selected but no data provided. Work hours in payload: {}", createUserRequest.getWorkingHours());
                 throw new ApiException("Custom work hours selected but no data provided");
@@ -265,6 +263,7 @@ public class StaffService {
         // validate staff email
         StaffEntity user = staffRepository.findById(id).orElseThrow(() -> new ApiException("User does not exist"));
         BeanUtils.copyProperties(editUserRequest, user);
+        user.setWorkingHoursSetting(WorkHourSetting.getWorkHourSetting(editUserRequest.getWorkHoursChoice()));
 
         List<StaffServicesLink> userServicesInDB = user.getServicesLinks();
         List<Integer> userRequestServices = editUserRequest.getServices();
@@ -329,8 +328,13 @@ public class StaffService {
         handleStaffWorkDaysUpdate(user, workdaysInDbNotInRequest, workdaysInRequestNotInDb);
 
         // handle working hours changes
-        if (editUserRequest.getWorkHoursChoice().equals("Custom")) {
+        if (Objects.equals(editUserRequest.getWorkHoursChoice(), WorkHourSetting.CUSTOM.getInteger())) {
             handleStaffWorkHoursUpdate(user, editUserRequest, workdaysInDbNotInRequest);
+        } else {
+            // todo:
+            // apply default business hours
+            // delete existing hours from DB if previous setting was custom
+            staffWorkHourRepository.deleteByStaff(user);
         }
 
         staffRepository.save(user);
@@ -407,32 +411,28 @@ public class StaffService {
             Optional<WorkHourEntity> optionalWorkHourEntity = workDaysToMaintain
                     .stream().filter(workHourEntity -> requestedWorkHour.getWorkDay().equals(workHourEntity.getWorkDay().getIntValue())).findAny();
 
-            if (optionalWorkHourEntity.isEmpty()) {
-                String message = String.format("Work day %s could not be found in expected work-day %s for staff", requestedWorkHour, workDaysToMaintain);
-                log.error(message);
-                throw new ApiException(message);
+            if (optionalWorkHourEntity.isPresent()) {
+                WorkHourEntity matchedWorkHourEntity = optionalWorkHourEntity.get();
+
+                // sort requested hours
+                List<LocalTime> sortedTimes = requestedWorkHour.getWorkHours().stream()
+                        .map(LocalTime::parse)
+                        .sorted(LocalTime::compareTo)
+                        .collect(Collectors.toList());
+
+                // compare start and end times
+                if (!matchedWorkHourEntity.getStartTime().equals(sortedTimes.get(0))) {
+                    log.info("Updating staff id: {} work start time to: {} on: {}", user.getUserId(), sortedTimes.get(0), matchedWorkHourEntity.getWorkDay());
+                    matchedWorkHourEntity.setStartTime(sortedTimes.get(0));
+                }
+
+                if (!matchedWorkHourEntity.getEndTime().equals(sortedTimes.get(sortedTimes.size()-1))) {
+                    log.info("Updating staff id: {} work end time to: {} on: {}", user.getUserId(), sortedTimes.get(sortedTimes.size()-1), matchedWorkHourEntity.getWorkDay());
+                    matchedWorkHourEntity.setEndTime(sortedTimes.get(sortedTimes.size()-1));
+                }
+
+                staffWorkHourRepository.save(matchedWorkHourEntity);
             }
-
-            WorkHourEntity matchedWorkHourEntity = optionalWorkHourEntity.get();
-
-            // sort requested hours
-            List<LocalTime> sortedTimes = requestedWorkHour.getWorkHours().stream()
-                    .map(LocalTime::parse)
-                    .sorted(LocalTime::compareTo)
-                    .collect(Collectors.toList());
-
-            // compare start and end times
-            if (!matchedWorkHourEntity.getStartTime().equals(sortedTimes.get(0))) {
-                log.info("Updating staff id: {} work start time to: {} on: {}", user.getUserId(), sortedTimes.get(0), matchedWorkHourEntity.getWorkDay());
-                matchedWorkHourEntity.setStartTime(sortedTimes.get(0));
-            }
-
-            if (!matchedWorkHourEntity.getEndTime().equals(sortedTimes.get(sortedTimes.size()-1))) {
-                log.info("Updating staff id: {} work end time to: {} on: {}", user.getUserId(), sortedTimes.get(sortedTimes.size()-1), matchedWorkHourEntity.getWorkDay());
-                matchedWorkHourEntity.setEndTime(sortedTimes.get(sortedTimes.size()-1));
-            }
-
-            staffWorkHourRepository.save(matchedWorkHourEntity);
 
         }
 
