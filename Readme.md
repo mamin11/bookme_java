@@ -1,3 +1,6 @@
+## App properties
+add application.properties and past the contents of application.example.properties
+
 ## Run resources
 - execute `docker compose up -d` to start the following
   - rabbitmq 
